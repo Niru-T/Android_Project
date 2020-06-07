@@ -15,6 +15,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -27,43 +28,43 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ListAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
-    private static final String BASE_URL = "https://pokeapi.co/";
+    private static final String BASE_URL = "https://restcountries.eu/";
     private SharedPreferences sharedPreferences;
     private Gson gson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        sharedPreferences = getSharedPreferences("Application save", Context.MODE_PRIVATE);
         setContentView(R.layout.activity_main);
-
-        sharedPreferences = getSharedPreferences("app save esiea", Context.MODE_PRIVATE);
         gson = new GsonBuilder()
                 .setLenient()
                 .create();
 
-        List<Pokemon> pokemonList = getDataFromCache();
+        List<Country> countryList = getDataFromCache();
 
-        if(pokemonList != null){
-            showList(pokemonList);
+        if(countryList != null){
+            showList(countryList);
         } else {
             makeAPIcall();
         }
+
     }
 
-    private List<Pokemon> getDataFromCache() {
-        String jsonPokemon = sharedPreferences.getString(Constants.KEY_POKEMON_LIST, null);
+    private List<Country> getDataFromCache() {
+        String countries = sharedPreferences.getString(Constants.KEY_Country_LIST, null);
 
-        if(jsonPokemon == null){
+        if(countries == null){
             return null;
         } else {
-            Type listType = new TypeToken<List<Pokemon>>(){}.getType();
-            return gson.fromJson(jsonPokemon, listType);
+            Type listType = new TypeToken<List<Country>>(){}.getType();
+            return gson.fromJson(countries, listType);
 
         }
     }
 
-    private void showList(List<Pokemon> pokemonList) {
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+    private void showList(List<Country> countryList) {
+        recyclerView = findViewById(R.id.recycler_view);
         final SwipeRefreshLayout swiperefresh = findViewById(R.id.swiperefresh);
         swiperefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -72,52 +73,49 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         recyclerView.setHasFixedSize(true);
-        layoutManager = new LinearLayoutManager(this);
+        layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        mAdapter = new ListAdapter(pokemonList);
+        mAdapter = new ListAdapter(countryList,MainActivity.this);
         recyclerView.setAdapter(mAdapter);
     }
 
 
     private void makeAPIcall() {
 
-        Retrofit retrofit = new Retrofit.Builder()
+        CountryAPI placeAPI = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
+                .build()
+                .create(CountryAPI.class);
 
-        PokeAPI pokeAPI = retrofit.create(PokeAPI.class);
-
-        Call<RestPokemonResponse> call = pokeAPI.getPokemonResponse();
-        call.enqueue(new Callback<RestPokemonResponse>() {
+        Call<List<Country>> call = placeAPI.getCountryResponse();
+        call.enqueue(new Callback<List<Country>>() {
             @Override
-            public void onResponse(Call<RestPokemonResponse> call, Response<RestPokemonResponse> response) {
+            public void onResponse(Call<List<Country>> call, Response<List<Country>> response) {
                 if(response.isSuccessful() && response.body() != null) {
-                    List<Pokemon> pokemonList = response.body().getResults();
+                    List<Country> countryList = new ArrayList<>(response.body());
                     Toast.makeText(getApplicationContext(), "API SUCCESS", Toast.LENGTH_SHORT).show();
-                    saveList(pokemonList);
-                    showList(pokemonList);
+                    saveList(countryList);
+                    showList(countryList);
                 } else {
                     showError();
                 }
             }
 
             @Override
-            public void onFailure(Call<RestPokemonResponse> call, Throwable t) {
+            public void onFailure(Call<List<Country>> call, Throwable t) {
                 showError();
             }
         });
     }
 
-    private void saveList(List<Pokemon> pokemonList) {
-        String jsonString = gson.toJson(pokemonList);
-
+    private void saveList(List<Country> countryList) {
+        String jsonString = gson.toJson(countryList);
         sharedPreferences
                 .edit()
-                .putString(Constants.KEY_POKEMON_LIST, jsonString)
+                .putString(Constants.KEY_Country_LIST, jsonString)
                 .apply();
-
         Toast.makeText(getApplicationContext(), "List Saved", Toast.LENGTH_SHORT).show();
     }
 
