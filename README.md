@@ -2,7 +2,7 @@
 
 ## Présentation du projet
 
-Mon application affiche une liste de tous les pays du monde, que je recupère grace l'API(rest) "https://restcountries.eu/".
+Mon application affiche une liste de tous les pays du monde, que je recupère grace à l'API(rest) "https://restcountries.eu/".
 En cliquant sur  le nom d'un pays, on est redirigés vers une nouvelle fenêtre affichant la description de ce pays.
 
 ### Prérequis
@@ -40,6 +40,6 @@ Description du pays sur lequel on a cliqué (ici l'Arménie):
 
 ### Informations complémentaires
 Pour récupérer les drapeaux des pays, j'ai suivi le tuto suivant: https://muetsch.io/how-to-load-svg-into-imageview-by-url-in-android.html car la récupération des images web au format svg est un peu spéciale.
-Il y a un petit bug qui reste à corriger, l'application plante lorsqu'on descend plus bas que la Biélorussie.
+Il y a un petit bug qui reste à corriger, l'application plante lorsqu'on descend plus bas que la Biélorussie dans la liste.
 
 
